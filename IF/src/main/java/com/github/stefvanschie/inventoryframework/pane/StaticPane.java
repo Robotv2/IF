@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnmodifiableView;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -60,7 +61,7 @@ public class StaticPane extends Pane implements Flippable, Rotatable {
     public StaticPane(Slot slot, int length, int height, @NotNull Priority priority) {
         super(slot, length, height, priority);
 
-        this.items = new HashMap<>(length * height);
+        this.items = new LinkedHashMap<>(length * height);
     }
 
     public StaticPane(int x, int y, int length, int height, @NotNull Priority priority) {
@@ -105,7 +106,7 @@ public class StaticPane extends Pane implements Flippable, Rotatable {
 		int length = Math.min(this.length, maxLength);
 		int height = Math.min(this.height, maxHeight);
 
-		items.entrySet().stream().filter(entry -> entry.getValue().isVisible()).forEach(entry -> {
+		items.entrySet().stream().filter(entry -> entry.getValue().isVisible()).forEachOrdered(entry -> {
 			Slot location = entry.getKey();
 
 			int x = location.getX(getLength());
@@ -328,11 +329,42 @@ public class StaticPane extends Pane implements Flippable, Rotatable {
 		this.fillWith(itemStack, null);
 	}
 
-	@NotNull
+    /**
+     * Gets a gui item from the specific spot in the pane by x and y coordinates
+     *
+     * @param x         the x coordinate of the position of the item
+     * @param y         the y coordinate of the position of the item
+     * @since TODO: __VERSION__
+     */
+    public GuiItem getItem(int x, int y) {
+        return getItem(Slot.fromXY(x, y));
+    }
+
+    /**
+     * Gets the specified item from the pane by the slot
+     *
+     * @param slot      the slot of the item
+     * @since TODO: __VERSION__
+     */
+    public GuiItem getItem(Slot slot) {
+        return items.get(slot);
+    }
+
+    @NotNull
 	@Override
 	public Collection<GuiItem> getItems() {
 		return items.values();
 	}
+
+    /**
+     * Get the GUI items with their slots
+     * @return Map<Slot, GuiItem>
+     * @since TODO: __VERSION__
+     */
+    @UnmodifiableView
+    public @NotNull Map<Slot, GuiItem> getSlottedItems() {
+        return Collections.unmodifiableMap(items);
+    }
 
     @Override
     public void clear() {
